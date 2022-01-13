@@ -72,6 +72,61 @@ where
     assert_float_eq!(5.0, dual.dual(c2), abs <= 1e-1);
 }
 
+#[allow(dead_code)]
+fn reduced_cost_problem_for_solver<S: Solver>(solver: S)
+where
+    for<'a> <<S as Solver>::Model as SolverModel>::Solution: SolutionWithDual<'a>,
+{
+    // Non-negative values
+    let mut vars = variables!();
+    let s1 = vars.add(variable().min(0));
+    let s2 = vars.add(variable().min(0));
+    let d1 = vars.add(variable().min(0));
+    let d2 = vars.add(variable().min(0));
+
+    let s1_d1 = vars.add(variable().min(0));
+    let s1_d2= vars.add(variable().min(0));
+    let s2_d2 = vars.add(variable().min(0));
+
+    // Objective and Problem
+    let objective = 10 * s1 + 20 * s2 + s1_d2 * 5;
+    let mut p = vars.maximise(objective.clone()).using(solver);
+
+    // Subject to
+    let c_s1 = p.add_constraint(constraint!(s1 <= 100.0));
+    let c_s2 = p.add_constraint(constraint!(s2 <= 100.0));
+    let c_d2 = p.add_constraint(constraint!(d2 <= 90.0));
+    let c_d1 = p.add_constraint(constraint!(d1 <= 90.0));
+
+    // let c_s_d2 = p.add_constraint(constraint!(s1 + s2 == d2));
+    // let c_s1_d1 = p.add_constraint(constraint!(s1 == d1));
+
+    let s1_out = p.add_constraint(constraint!(s1 == s1_d1 + s1_d2));
+    let s2_out = p.add_constraint(constraint!(s2 == s2_d2));
+
+    let s1_out_forced = p.add_constraint(constraint!(s1 == 100));
+
+    let d1_in = p.add_constraint(constraint!(d1 == s1_d1));
+    let d2_in = p.add_constraint(constraint!(d2 == s1_d2 + s2_d2));
+
+    // Solve
+    let mut solution = p.solve().expect("Library test");
+    assert_float_eq!(2650.0, solution.eval(&objective), abs <= 1e-10);
+
+    assert_float_eq!(100.0, solution.value(s1), abs <= 1e-1);
+    assert_float_eq!(80.0, solution.value(s2), abs <= 1e-1);
+    assert_float_eq!(90.0, solution.value(s1_d1), abs <= 1e-1);
+    assert_float_eq!(10.0, solution.value(s1_d2), abs <= 1e-1);
+    assert_float_eq!(80.0, solution.value(s2_d2), abs <= 1e-1);
+
+    let dual = solution.compute_dual();
+    assert_float_eq!(-15.0, dual.dual(d1_in.clone()), abs <= 1e-1);
+    assert_float_eq!(-20.0, dual.dual(d2_in.clone()), abs <= 1e-1);
+
+    println!("{:?}",  dual.dual_columns());
+    println!("{:?}",  dual.dual_rows());
+}
+
 macro_rules! dual_test {
     ($solver_feature:literal, $solver:expr) => {
         #[test]
@@ -84,6 +139,12 @@ macro_rules! dual_test {
         #[cfg(feature = $solver_feature)]
         fn furniture_problem() {
             furniture_problem_for_solver($solver)
+        }
+
+        #[test]
+        #[cfg(feature = $solver_feature)]
+        fn reduced_cost_problem() {
+            reduced_cost_problem_for_solver($solver)
         }
     };
 }

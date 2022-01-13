@@ -181,6 +181,19 @@ pub trait DualValues {
     /// This returns the value of the solution for the corresponding variable in the dual problem.
     /// This is also called "shadow price" or "dual price".
     fn dual(&self, c: ConstraintReference) -> f64;
+
+    /// Retrieve all  dual value for a given constraint.
+    /// This returns the value of the solution for the corresponding variable in the dual problem.
+    /// This is also called "shadow price" or "dual price".
+    fn dual_rows(&self) -> &[f64];
+
+    /// Retrieve a single dual column value for a given constraint. 
+    /// This is also called reduced price
+    fn dual_column(&self, c: ConstraintReference) -> f64;
+
+    /// Retrieve all dual column value for a given constraint. 
+    /// This is also called reduced price
+    fn dual_columns(&self) -> &[f64];
 }
 
 /// The dual value measures the increase in the objective function's value per unit

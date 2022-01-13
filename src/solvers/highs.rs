@@ -144,6 +144,18 @@ impl<'a> DualValues for &'a HighsSolution {
     fn dual(&self, constraint: ConstraintReference) -> f64 {
         self.solution.dual_rows()[constraint.index]
     }
+
+    fn dual_column(&self, constraint: ConstraintReference) -> f64 {
+        self.solution.dual_columns()[constraint.index]
+    }
+
+    fn dual_rows(&self) -> &[f64] {
+        self.solution.dual_rows()
+    }
+
+    fn dual_columns(&self) -> &[f64] {
+        self.solution.dual_columns()
+    }
 }
 
 impl<'a> SolutionWithDual<'a> for HighsSolution {
