@@ -145,8 +145,8 @@ impl<'a> DualValues for &'a HighsSolution {
         self.solution.dual_rows()[constraint.index]
     }
 
-    fn dual_column(&self, constraint: ConstraintReference) -> f64 {
-        self.solution.dual_columns()[constraint.index]
+    fn dual_column(&self, constraint: Variable) -> f64 {
+        self.solution.dual_columns()[constraint.index()]
     }
 
     fn dual_rows(&self) -> &[f64] {

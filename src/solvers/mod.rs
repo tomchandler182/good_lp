@@ -189,7 +189,7 @@ pub trait DualValues {
 
     /// Retrieve a single dual column value for a given constraint. 
     /// This is also called reduced price
-    fn dual_column(&self, c: ConstraintReference) -> f64;
+    fn dual_column(&self, c: Variable) -> f64;
 
     /// Retrieve all dual column value for a given constraint. 
     /// This is also called reduced price

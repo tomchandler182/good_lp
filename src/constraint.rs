@@ -138,7 +138,7 @@ macro_rules! constraint {
 #[derive(Clone, PartialEq, Debug)]
 /// A constraint reference contains the sequence id of the constraint within the problem
 pub struct ConstraintReference {
-    pub index: usize,
+    pub(crate) index: usize,
 }
 
 #[cfg(test)]
