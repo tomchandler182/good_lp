@@ -2,7 +2,7 @@ use float_eq::assert_float_eq;
 
 use good_lp::{
     constraint,
-    solvers::{DualValues, SolutionWithDual},
+    solvers::{DualValues, SolutionWithDual, highs::{HighsProblem, HighsSolution}},
     variable, variables, Solution, Solver, SolverModel,
 };
 
@@ -90,13 +90,13 @@ where
 
     // Objective and Problem
     let objective = 10 * s1 + 20 * s2 + s1_d2 * 5;
-    let mut p = vars.maximise(objective.clone()).using(solver);
+    let mut p : HighsProblem = vars.minimise(objective.clone()).using(good_lp::highs);
 
     // Subject to
     let c_s1 = p.add_constraint(constraint!(s1 <= 100.0));
     let c_s2 = p.add_constraint(constraint!(s2 <= 100.0));
-    let c_d2 = p.add_constraint(constraint!(d2 <= 90.0));
-    let c_d1 = p.add_constraint(constraint!(d1 <= 90.0));
+    let c_d2 = p.add_constraint(constraint!(d2 >= 90.0));
+    let c_d1 = p.add_constraint(constraint!(d1 >= 90.0));
 
     // let c_s_d2 = p.add_constraint(constraint!(s1 + s2 == d2));
     // let c_s1_d1 = p.add_constraint(constraint!(s1 == d1));
@@ -104,13 +104,13 @@ where
     let s1_out = p.add_constraint(constraint!(s1 == s1_d1 + s1_d2));
     let s2_out = p.add_constraint(constraint!(s2 == s2_d2));
 
-    let s1_out_forced = p.add_constraint(constraint!(s1 == 100));
+    //let s1_out_forced = p.add_constraint(constraint!(s1 == 100));
 
     let d1_in = p.add_constraint(constraint!(d1 == s1_d1));
     let d2_in = p.add_constraint(constraint!(d2 == s1_d2 + s2_d2));
 
     // Solve
-    let mut solution = p.solve().expect("Library test");
+    let mut solution : HighsSolution = p.solve().expect("Library test");
     assert_float_eq!(2650.0, solution.eval(&objective), abs <= 1e-10);
 
     assert_float_eq!(100.0, solution.value(s1), abs <= 1e-1);
@@ -125,6 +125,8 @@ where
 
     println!("{:?}",  dual.dual_columns());
     println!("{:?}",  dual.dual_rows());
+
+    println!("{:?}", solution.into_inner().columns())
 }
 
 macro_rules! dual_test {

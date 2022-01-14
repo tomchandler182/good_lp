@@ -86,6 +86,7 @@ impl Variable {
 }
 
 impl Variable {
+    /// Docs
     pub fn index(&self) -> usize {
         self.index
     }
